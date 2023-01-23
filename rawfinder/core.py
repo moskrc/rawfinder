@@ -75,7 +75,7 @@ def main():
     parser.add_argument(
         "jpeg", nargs="?", help="directory with jpeg files", default=os.getcwd()
     )
-    parser.add_argument("raw", nargs="?", help="directory with source RAW files")
+    parser.add_argument("raw", nargs="?", help="directory with source RAW files", default=os.getcwd())
     parser.add_argument(
         "-d",
         "--dst",
@@ -84,5 +84,6 @@ def main():
         required=False,
     )
     args = parser.parse_args()
+    print(args)
 
     RawFinder(args.jpeg, args.raw, args.dst).find()
