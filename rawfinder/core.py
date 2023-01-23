@@ -84,6 +84,5 @@ def main():
         required=False,
     )
     args = parser.parse_args()
-    print(args)
 
     RawFinder(args.jpeg, args.raw, args.dst).find()
