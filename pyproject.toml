@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "rawfinder"
+version = "0.1.1"
+description = "Raw Finder"
+authors = ["Vitalii Shishorin <moskrc@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/moskrc/rawfinder"
+keywords = ["raw", "finder", "raw_finder", "jpeg_raw"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+black = "^22.10.0"
+pre-commit = "^2.20.0"
+pytest-cov = "^4.0.0"
+isort = "^5.11.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+rawfinder = "rawfinder.core:main"

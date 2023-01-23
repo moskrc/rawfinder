@@ -1,0 +1,12 @@
+.idea
+.idea/*
+.vscode
+.vscode/*
+.DS_Store
+*.pyc
+pytest-report.xml
+.coverage
+coverage.xml
+htmlcov
+dist
+.env
