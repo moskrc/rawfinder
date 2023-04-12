@@ -2,7 +2,7 @@
 
 ## What is it?
 
-This script find a corresponded raw files for jpeg files in a directory.
+This script finds corresponded RAW files for images.
 
 ## How to install
 
@@ -14,17 +14,18 @@ $ pip install rawfinder
 ```bash
 $ rawfinder -h
 
-usage: rawfinder [-h] [-d DST] [jpeg] [raw]
+usage: rawfinder [-h] [-t TARGET] [image_dir] [raw_dir]
 
-Find correspond raw files
+Find corresponding raw files for images
 
 positional arguments:
-  jpeg               directory with jpeg files
-  raw                directory with source RAW files
+  image_dir             directory with images
+  raw_dir               directory with RAW files
 
-options:
-  -h, --help         show this help message and exit
-  -d DST, --dst DST  destination dir
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TARGET, --target TARGET
+                        destination dir
 ```
 
 ## Example
@@ -34,7 +35,7 @@ folder, copy them to `raw` folder inside current folder (name by
 default):
 
 ```bash
-$ rawfinder . ~/Pictures/raw -dst ./raw
+$ rawfinder . ~/Pictures/raw -t ./raw
 ```
 
 # Development
