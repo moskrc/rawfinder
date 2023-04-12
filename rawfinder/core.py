@@ -17,72 +17,92 @@ RAW_FILE_EXTENSIONS = [
     ".sr2",
 ]
 
+IMAGE_FILE_EXTENSIONS = [".jpeg", ".jpg"]
+
 
 class RawFinder:
-    def __init__(self, path: str, raw_path: str, dest_path: str = "raw") -> None:
-        self.path = pathlib.Path(path)
+    def __init__(self, path: str, raw_path: str, dest_path: str = None) -> None:
+        self.image_path = pathlib.Path(path)
         self.raw_path = pathlib.Path(raw_path)
-        self.dest_path = pathlib.Path(dest_path)
 
-        self.files = self._get_files()
+        if not dest_path:
+            self.dest_path = self.image_path / DEFAULT_DST_FOLDER
+        else:
+            self.dest_path = pathlib.Path(dest_path)
 
-    def _get_files(self) -> list[pathlib.Path]:
-        files = []
-        for item in pathlib.Path(self.path).glob("*"):
-            if item.is_file():
-                files.append(item)
-        return files
+        self.image_files = self._get_image_files(self.image_path, IMAGE_FILE_EXTENSIONS)
 
-    @staticmethod
-    def get_folder_name(file: pathlib.Path) -> str:
-        return file.suffix.lower()[1:]
+        self.raw_files = self._get_image_files(
+            self.raw_path, RAW_FILE_EXTENSIONS, recursively=True
+        )
+
+    def _get_image_files(
+        self, folder: pathlib.Path, extensions: list[str], recursively: bool = False
+    ) -> list[pathlib.Path]:
+        return [
+            item
+            for item in pathlib.Path(folder).glob("**/*" if recursively else "*")
+            if item.is_file() and item.suffix.lower() in extensions
+        ]
+
+    def prompt(self):
+        msg = (
+            f"# Images: '{self.image_path}' ({len(self.image_files)} image files)\n"
+            f"# RAWs: '{self.raw_path}' ({len(self.raw_files)} raw files)\n"
+            f"# Find corresponding RAW files and copy them to '{self.dest_path}'? [Y/n] "
+        )
+
+        if input(msg).lower() not in ["y", ""]:
+            raise KeyboardInterrupt
+
+    def get_corresponding_raw(self, image_file):
+        image_name = image_file.stem.lower()
+        raw_set = set(self.raw_files)
+        for raw_file in raw_set:
+            if raw_file.stem.lower() == image_name:
+                return raw_file
 
     def find(self) -> None:
-        msg = (
-            f"Find RAW files in {self.raw_path.resolve()} for {len(self.files)} files in {self.path.resolve()} "
-            f"and copy them to {self.dest_path.resolve()}? [Y/n] "
-        )
         try:
-            if input(msg).lower() not in ["y", ""]:
-                raise KeyboardInterrupt
+            self.prompt()
         except KeyboardInterrupt:
             return
 
         self.dest_path.mkdir(exist_ok=True, parents=True)
 
-        for file in self.files:
-            if file.suffix:
-                raw_file_found = False
-                for raw_ext in RAW_FILE_EXTENSIONS:
-                    raw_file = self.raw_path.joinpath(file.name.split(".")[0] + raw_ext)
-                    if raw_file.exists():
-                        print(f"RAW file {raw_file.name} found for {file.name}...")
-                        self.dest_path.joinpath(raw_file.name).write_bytes(
-                            raw_file.read_bytes()
-                        )
-                        raw_file_found = True
-
-                if not raw_file_found:
-                    print(f"No RAW file found for {file.name}!")
+        for file in self.image_files:
+            if raw_file := self.get_corresponding_raw(file):
+                copy_path = self.dest_path / raw_file.name
+                print(
+                    f"RAW file {raw_file.name} found for {file.name}, copy to {copy_path}..."
+                )
+                copy_path.write_bytes(raw_file.read_bytes())
+            else:
+                print(f"No RAW file found for {file.name}!")
 
         print("Done")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="rawfinder", description="Find correspond raw files"
+        prog="rawfinder", description="Find corresponding raw files for images"
     )
     parser.add_argument(
-        "jpeg", nargs="?", help="directory with jpeg files", default=os.getcwd()
+        "image_dir", nargs="?", help="directory with images", default=os.getcwd()
     )
-    parser.add_argument("raw", nargs="?", help="directory with source RAW files", default=os.getcwd())
     parser.add_argument(
-        "-d",
-        "--dst",
+        "raw_dir", nargs="?", help="directory with RAW files", default=os.getcwd()
+    )
+    parser.add_argument(
+        "-t",
+        "--target",
         help="destination dir",
-        default=DEFAULT_DST_FOLDER,
         required=False,
     )
     args = parser.parse_args()
 
-    RawFinder(args.jpeg, args.raw, args.dst).find()
+    RawFinder(args.image_dir, args.raw_dir, args.target).find()
+
+
+if __name__ == "__main__":
+    main()
