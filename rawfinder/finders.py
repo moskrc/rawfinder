@@ -6,8 +6,8 @@ from functools import lru_cache
 class BaseFinder(abc.ABC):
     extensions: list[str] = []
 
-    def __init__(self, path: str) -> None:
-        self.path = pathlib.Path(path)
+    def __init__(self, path: pathlib.Path) -> None:
+        self.path = path
 
     @classmethod
     @lru_cache
@@ -40,15 +40,48 @@ class JpegFinder(BaseFinder):
 
 class RawFinder(BaseFinder):
     extensions = [
-        ".cr2",
-        ".nef",
-        ".dng",
+        ".3fr",  # Hasselblad
+        ".ari",  # Arri Alexa
         ".arw",
-        ".raf",
-        ".rw2",
-        ".orf",
-        ".srw",
+        ".srf",
+        ".sr2",  # Sony
+        ".bay",  # Casio
+        ".braw",  # Blackmagic Design
+        ".cri",  # Cintel
+        ".crw",
+        ".cr2",
+        ".cr3",  # Canon
+        ".cap",
+        ".iiq",
+        ".eip",  # Phase One
+        ".dcs",
+        ".dcr",
+        ".drf",
+        ".k25",
+        ".kdc",  # Kodak
+        ".dng",  # Adobe
+        ".erf",  # Epson
+        ".fff",  # Imacon/Hasselblad raw
+        ".gpr",  # GoPro
+        ".mef",  # Mamiya
+        ".mdc",  # Minolta, Agfa
+        ".mos",  # Leaf
+        ".mrw",  # Minolta, Konica Minolta
+        ".nef",
+        ".nrw",  # Nikon
+        ".orf",  # Olympus
         ".pef",
-        ".x3f",
-        ".sr2",
+        ".ptx",  # Pentax
+        ".pxn",  # Logitech
+        ".R3D",  # RED Digital Cinema
+        ".raf",  # Fuji
+        ".raw",
+        ".rw2",  # Panasonic
+        ".raw",
+        ".rwl",
+        ".dng",  # Leica
+        ".rwz",  # Rawzor
+        ".srw",  # Samsung
+        ".tco",  # intoPIX
+        ".x3f",  # Sigma
     ]

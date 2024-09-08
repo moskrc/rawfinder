@@ -10,6 +10,7 @@ keywords = ["raw", "finder", "raw_finder", "jpeg_raw"]
 [tool.poetry.dependencies]
 python = "^3.9"
 loguru = "^0.7.2"
+click = "^8.1.7"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -26,4 +27,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-rawfinder = "rawfinder.core:main"
+rawfinder = "rawfinder.main:main"
