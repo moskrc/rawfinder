@@ -1,6 +1,6 @@
 from pathlib import PosixPath
 
-from rawfinder.finders import JpegFinder, BaseFinder, RawFinder
+from rawfinder.finders import BaseFinder, JpegFinder, RawFinder
 
 
 class TestBaseFinder:

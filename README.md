@@ -14,19 +14,18 @@ $ pip install rawfinder
 ```bash
 $ rawfinder -h
 
-usage: rawfinder [-h] [-t TARGET] [image_dir] [raw_dir]
+Usage: rawfinder [OPTIONS] IMAGES_DIR SOURCES_DIR [DEST_SOURCES_DIR]
 
-Find corresponding raw files for images
+  Find corresponding RAW files for JPEG images and copy them to a DEST folder.
 
-positional arguments:
-  image_dir             directory with images
-  raw_dir               directory with RAW files
+  JPEG_DIR - directory with JPEG files.
+  RAW_DIR  - directory with RAW files.
+  DEST_DIR - destination directory for RAW files.
+             default is 'raw' inside the JPEG_DIR
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -t TARGET, --target TARGET
-                        destination dir
-```
+Options:
+  --help  Show this message and exit.
+  ```
 
 ## Example
 
@@ -35,7 +34,7 @@ folder, copy them to `raw` folder inside current folder (name by
 default):
 
 ```bash
-$ rawfinder . ~/Pictures/raw -t ./raw
+$ rawfinder . ~/Pictures/raw ./raw
 ```
 
 # Development

@@ -1,8 +1,10 @@
 import pathlib
 import shutil
+
+from loguru import logger
+
 from rawfinder.finders import JpegFinder, RawFinder
 from rawfinder.indexers import FileStorage
-from loguru import logger
 
 
 class App:
