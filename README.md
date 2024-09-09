@@ -43,17 +43,17 @@ $ rawfinder . ~/Pictures/raw ./raw
 ## Install
 
 ```bash
-$ poetry install
+$ make install
 ```
 
 ## Tests
 
 ```bash
-$ poetry run make test
+$ make test
 ```
 
 ## Linters
 
 ```bash
-$ poetry run make format
+$ make check
 ```
