@@ -1,5 +1,4 @@
-from email.policy import default
-from pathlib import Path
+import pathlib
 
 import click
 
@@ -10,7 +9,7 @@ from rawfinder.app import App
 @click.argument("images_dir", type=click.Path(exists=True))
 @click.argument("sources_dir", type=click.Path(exists=True))
 @click.argument("dest_sources_dir", default="", type=click.Path(writable=True))
-def main(images_dir, sources_dir, dest_sources_dir):
+def main(images_dir: pathlib.Path, sources_dir: pathlib.Path, dest_sources_dir: pathlib.Path) -> None:
     """Find corresponding RAW files for JPEG images and copy them to a DEST folder.
 
     \b

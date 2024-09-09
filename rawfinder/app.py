@@ -39,11 +39,11 @@ class App:
         if input(message).lower() not in ["y", ""]:
             raise KeyboardInterrupt("Cancelled.")
 
-    def prepare_destination(self):
+    def prepare_destination(self) -> None:
         logger.info(f"Creating destination folder: {self.raw_images_dest_path}")
         self.raw_images_dest_path.mkdir(exist_ok=True, parents=True)
 
-    def process_files(self):
+    def process_files(self) -> None:
         logger.debug("Indexing RAW files")
 
         storage = FileStorage()
