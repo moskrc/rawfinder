@@ -2,7 +2,7 @@
 
 ## What is it?
 
-This script finds corresponded RAW files for images.
+This script finds corresponded RAW files for JPEG images.
 
 ## How to install
 
@@ -11,6 +11,7 @@ $ pip install rawfinder
 ```
 
 ## How to use
+
 ```bash
 $ rawfinder -h
 
@@ -25,7 +26,7 @@ Usage: rawfinder [OPTIONS] IMAGES_DIR SOURCES_DIR [DEST_SOURCES_DIR]
 
 Options:
   --help  Show this message and exit.
-  ```
+```
 
 ## Example
 

@@ -21,9 +21,7 @@ class App:
         self.raw_images_dest_path = raw_images_dest_path
 
         self.raw_images_dest_path = (
-            raw_images_dest_path
-            if raw_images_dest_path
-            else jpeg_images_path / self.DEFAULT_DST_FOLDER
+            raw_images_dest_path if raw_images_dest_path else jpeg_images_path / self.DEFAULT_DST_FOLDER
         )
 
     def get_user_confirmation(self) -> None:
@@ -38,8 +36,8 @@ class App:
             "Is it ok: [Y/n] "
         )
 
-        if not input(message).lower() in ["y", ""]:
-            raise KeyboardInterrupt("Operation cancelled by the user.")
+        if input(message).lower() not in ["y", ""]:
+            raise KeyboardInterrupt("Cancelled.")
 
     def prepare_destination(self):
         logger.info(f"Creating destination folder: {self.raw_images_dest_path}")
