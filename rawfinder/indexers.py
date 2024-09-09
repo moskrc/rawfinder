@@ -1,4 +1,5 @@
 import pathlib
+from typing import Optional
 
 
 class FileStorage:
@@ -19,7 +20,7 @@ class FileStorage:
         # Mark the storage as indexed
         self.indexed = True
 
-    def get(self, file_name: str) -> pathlib.Path | None:
+    def get(self, file_name: str) -> Optional[pathlib.Path]:
         """Retrieves a file path by its name, ignoring case."""
 
         if not self.indexed:
