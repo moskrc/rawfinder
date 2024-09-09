@@ -43,7 +43,7 @@ class TestJpegFinder:
         file_data = [(3, "jpg"), (4, "jPeG"), (5, "mp3"), (1, "avi")]
         temp_dir = generate_files(file_data)
 
-        res = JpegFinder.find(temp_dir)
+        res = JpegFinder(temp_dir).find()
         assert len(res) == 7
 
 
