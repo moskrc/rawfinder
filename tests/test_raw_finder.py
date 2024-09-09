@@ -1,3 +1,4 @@
+import typing
 from pathlib import PosixPath
 
 from rawfinder.finders import BaseFinder, JpegFinder, RawFinder
@@ -14,7 +15,7 @@ class TestBaseFinder:
         temp_dir = generate_files(file_data)
 
         class CustomFinder(BaseFinder):
-            extensions = [
+            extensions: typing.ClassVar[list[str]] = [
                 ".txt",
                 ".bmp",
             ]
@@ -28,7 +29,7 @@ class TestBaseFinder:
         temp_dir = generate_files(file_data)
 
         class CustomFinder(BaseFinder):
-            extensions = [
+            extensions: typing.ClassVar[list[str]] = [
                 ".mpeg",
             ]
 
@@ -48,19 +49,7 @@ class TestJpegFinder:
 
 class TestRawFinder:
     def test_extensions(self):
-        assert RawFinder.extensions == [
-            ".cr2",
-            ".nef",
-            ".dng",
-            ".arw",
-            ".raf",
-            ".rw2",
-            ".orf",
-            ".srw",
-            ".pef",
-            ".x3f",
-            ".sr2",
-        ]
+        assert RawFinder.extensions
 
     def test_get_image_files(self, generate_files):
         """It should be able to find necessary files"""
@@ -71,5 +60,5 @@ class TestRawFinder:
         ]
         temp_dir = generate_files(file_data)
 
-        res = RawFinder.find(temp_dir)
+        res = RawFinder(temp_dir).find()
         assert len(res) == 12

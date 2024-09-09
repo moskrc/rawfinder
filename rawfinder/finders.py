@@ -1,10 +1,10 @@
-import abc
 import pathlib
+import typing
 from functools import lru_cache
 
 
-class BaseFinder(abc.ABC):
-    extensions: list[str] = []
+class BaseFinder:
+    extensions: typing.ClassVar[list[str]] = []
 
     def __init__(self, path: pathlib.Path) -> None:
         self.path = path
@@ -20,7 +20,6 @@ class BaseFinder(abc.ABC):
         ext = "".join(f"[{c.lower()}{c.upper()}]" for c in extension[1:])
         return f"*{extension[0]}{ext}"
 
-    @lru_cache
     def find(self) -> list[pathlib.Path]:
         return [
             file
@@ -35,11 +34,11 @@ class BaseFinder(abc.ABC):
 
 
 class JpegFinder(BaseFinder):
-    extensions = [".jpeg", ".jpg"]
+    extensions: typing.ClassVar[list[str]] = [".jpeg", ".jpg"]
 
 
 class RawFinder(BaseFinder):
-    extensions = [
+    extensions: typing.ClassVar[list[str]] = [
         ".3fr",  # Hasselblad
         ".ari",  # Arri Alexa
         ".arw",
