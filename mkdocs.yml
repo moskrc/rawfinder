@@ -5,7 +5,7 @@ site_description: This script finds corresponded RAW files for JPEG images.
 site_author: Vitalii Shishorin
 edit_uri: edit/main/docs/
 repo_name: moskrc/rawfinder
-copyright: Maintained by <a href="https://moskrc.com">Florian</a>.
+copyright: Maintained by <a href="https://moskrc.com">moskrc</a>.
 
 nav:
   - Home: index.md

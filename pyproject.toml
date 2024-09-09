@@ -25,6 +25,7 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 ruff = "^0.6.3"
+griffe = "0.49.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
