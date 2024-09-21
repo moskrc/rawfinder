@@ -1,10 +1,13 @@
 from pathlib import Path
 
+import pytest
+
 from rawfinder.indexers import FileStorage
 
 
 class TestDictIndexer:
-    def test_index(self):
+    @pytest.mark.asyncio
+    async def test_index(self):
         indexer = FileStorage()
         assert not indexer.indexed
         test_files = [
@@ -13,7 +16,7 @@ class TestDictIndexer:
             Path("/DCIM/OLD/IMG_2101.CR2"),
             Path("Gamma12.bmp"),
         ]
-        indexer.make_index(test_files)
+        await indexer.make_index(test_files)
         assert indexer.indexed
         assert indexer._storage == {
             "gamma12": Path("Gamma12.bmp"),

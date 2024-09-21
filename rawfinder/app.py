@@ -1,6 +1,7 @@
+import asyncio
 import pathlib
-import shutil
 
+import aiofiles
 from loguru import logger
 
 from rawfinder.finders import JpegFinder, RawFinder
@@ -23,8 +24,9 @@ class App:
         self.raw_images_dest_path = (
             raw_images_dest_path if raw_images_dest_path else jpeg_images_path / self.DEFAULT_DST_FOLDER
         )
+        self.sem = asyncio.Semaphore(25)
 
-    def get_user_confirmation(self) -> None:
+    async def get_user_confirmation(self) -> None:
         """
         Prompts the user for confirmation to proceed.
         """
@@ -39,36 +41,44 @@ class App:
         if input(message).lower() not in ["y", ""]:
             raise KeyboardInterrupt("Cancelled.")
 
-    def prepare_destination(self) -> None:
+    async def prepare_destination(self) -> None:
         logger.info(f"Creating destination folder: {self.raw_images_dest_path}")
         self.raw_images_dest_path.mkdir(exist_ok=True, parents=True)
 
-    def process_files(self) -> None:
+    async def copy_file(self, src: pathlib.Path, dst: pathlib.Path, jpeg_name: str) -> None:
+        dst = dst / src.name
+        async with self.sem, aiofiles.open(src, "rb") as src_file, aiofiles.open(dst, "wb") as dst_file:
+            while chunk := await src_file.read(1024 * 1024):
+                await dst_file.write(chunk)
+            logger.info(f"RAW file {src.name} found for {jpeg_name}, has been copied to {dst}...")
+
+    async def process_files(self) -> None:
         logger.debug("Indexing RAW files")
 
         storage = FileStorage()
-        storage.make_index(self.raw_finder.find())
+        await storage.make_index(self.raw_finder.find())
 
         logger.debug("Processing JPEG files")
 
+        tasks = []
+
         for jpeg_file in self.jpeg_finder.find():
-            raw_file = storage.get(jpeg_file.stem.lower())
+            raw_file = await storage.get(jpeg_file.stem.lower())
             if raw_file:
-                logger.info(
-                    f"RAW file {raw_file.name} found for {jpeg_file.name}, copying to {self.raw_images_dest_path}..."
-                )
-                shutil.copy(raw_file, self.raw_images_dest_path)
+                tasks.append(self.copy_file(raw_file, self.raw_images_dest_path, jpeg_file.name))
             else:
                 logger.warning(f"No RAW file found for {jpeg_file.name}!")
 
-    def start(self) -> None:
+        await asyncio.gather(*tasks)
+
+    async def start(self) -> None:
         """
         Starts the application workflow.
         """
         try:
-            self.get_user_confirmation()
-            self.prepare_destination()
-            self.process_files()
+            await self.get_user_confirmation()
+            await self.prepare_destination()
+            await self.process_files()
             logger.info("Done.")
         except KeyboardInterrupt:
             pass

@@ -1,3 +1,4 @@
+import asyncio
 import pathlib
 
 import click
@@ -18,13 +19,12 @@ def main(images_dir: pathlib.Path, sources_dir: pathlib.Path, dest_sources_dir: 
     DEST_DIR - destination directory for RAW files.
                default is 'raw' inside the JPEG_DIR
     """
-
     app = App(
-        images_dir,
-        sources_dir,
-        dest_sources_dir,
+        pathlib.Path(images_dir),
+        pathlib.Path(sources_dir),
+        pathlib.Path(dest_sources_dir),
     )
-    app.start()
+    asyncio.run(app.start())
 
 
 if __name__ == "__main__":
