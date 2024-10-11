@@ -1,10 +1,10 @@
 # RawFinder - Find a corresponded raw file
 
-## What is it?
+**RawFinder** is a Python tool to help photographers and image processors locate and manage RAW files corresponding to JPEG images. It efficiently scans directories, searches for matching RAW files, and moves them to a specified location.
 
-This script finds corresponded RAW files for JPEG images.
+## Installation
 
-## How to install
+Install via pip:
 
 ```bash
 $ pip install rawfinder
