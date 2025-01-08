@@ -10,6 +10,7 @@ from rawfinder.indexers import FileStorage
 
 class App:
     DEFAULT_DST_FOLDER = pathlib.Path("raw")
+    BATCH_SIZE = 10
 
     def __init__(
         self,
@@ -24,7 +25,7 @@ class App:
         self.raw_images_dest_path = (
             raw_images_dest_path if raw_images_dest_path else jpeg_images_path / self.DEFAULT_DST_FOLDER
         )
-        self.sem = asyncio.Semaphore(25)
+        self.sem = asyncio.Semaphore(5)
 
     async def get_user_confirmation(self) -> None:
         """
@@ -48,7 +49,7 @@ class App:
     async def copy_file(self, src: pathlib.Path, dst: pathlib.Path, jpeg_name: str) -> None:
         dst = dst / src.name
         async with self.sem, aiofiles.open(src, "rb") as src_file, aiofiles.open(dst, "wb") as dst_file:
-            while chunk := await src_file.read(1024 * 1024):
+            while chunk := await src_file.read(16 * 1024 * 1024):
                 await dst_file.write(chunk)
             logger.info(f"RAW file {src.name} found for {jpeg_name}, has been copied to {dst}...")
 
@@ -69,7 +70,10 @@ class App:
             else:
                 logger.warning(f"No RAW file found for {jpeg_file.name}!")
 
-        await asyncio.gather(*tasks)
+        logger.debug(f"Total files to process: {len(tasks)}")
+
+        for i in range(0, len(tasks), self.BATCH_SIZE):
+            await asyncio.gather(*tasks[i : i + self.BATCH_SIZE])
 
     async def start(self) -> None:
         """
