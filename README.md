@@ -4,10 +4,10 @@
 
 ## Installation
 
-Install via pip:
+Install via pipx:
 
 ```bash
-$ pip install rawfinder
+$ pipx install rawfinder
 ```
 
 ## How to use
