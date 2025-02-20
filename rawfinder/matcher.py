@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 
 class FileMatcher:
@@ -17,7 +18,7 @@ class FileMatcher:
             if key not in self.index:
                 self.index[key] = raw
 
-    def get_matching_raw(self, jpeg_file: Path) -> Path | None:
+    def get_matching_raw(self, jpeg_file: Path) -> Optional[Path]:
         """
         Get matching RAW file for JPEG file.
         :param jpeg_file:

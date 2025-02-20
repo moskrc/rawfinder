@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import Optional
 
 import aiofiles
 
@@ -8,7 +9,7 @@ class AsyncFileCopier:
     CHUNK_SIZE: int = 16 * 1024 * 1024  # 16 MB
     DEFAULT_SEMAPHORE_LIMIT: int = 5
 
-    def __init__(self, semaphore: asyncio.Semaphore | None = None):
+    def __init__(self, semaphore: Optional[asyncio.Semaphore] = None):
         self.semaphore = semaphore or asyncio.Semaphore(self.DEFAULT_SEMAPHORE_LIMIT)
 
     async def copy(self, src: Path, dest_dir: Path) -> None:

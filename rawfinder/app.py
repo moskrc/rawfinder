@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn, TimeElapsedColumn
 
@@ -57,7 +57,7 @@ class AsyncRawFinderApp:
         ".x3f",
     }
 
-    def __init__(self, jpeg_dir: Path, raw_dir: Path, dest_dir: Path, logger: logging.Logger | None = None):
+    def __init__(self, jpeg_dir: Path, raw_dir: Path, dest_dir: Path, logger: Optional[logging.Logger] = None):
         self.jpeg_dir = jpeg_dir
         self.raw_dir = raw_dir
         self.dest_dir = dest_dir
