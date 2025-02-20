@@ -15,17 +15,17 @@ $ pipx install rawfinder
 ```bash
 $ rawfinder -h
 
-Usage: rawfinder [OPTIONS] IMAGES_DIR SOURCES_DIR [DEST_SOURCES_DIR]
+usage: rawfinder [-h] jpeg_dir raw_dir dest_dir
 
-  Find corresponding RAW files for JPEG images and copy them to a DEST folder.
+Find RAW files for JPEG files and copy them to the destination directory.
 
-  JPEG_DIR - directory with JPEG files.
-  RAW_DIR  - directory with RAW files.
-  DEST_DIR - destination directory for RAW files.
-             default is 'raw' inside the JPEG_DIR
+positional arguments:
+  jpeg_dir    Directory with JPEG files.
+  raw_dir     Directory with RAW files.
+  dest_dir    Destination directory for copied RAW files.
 
-Options:
-  --help  Show this message and exit.
+options:
+  -h, --help  show this help message and exit
 ```
 
 ## Example

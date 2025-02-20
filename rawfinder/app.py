@@ -1,88 +1,113 @@
 import asyncio
-import pathlib
+import logging
+from pathlib import Path
+from typing import ClassVar
 
-import aiofiles
-from loguru import logger
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn, TimeElapsedColumn
 
-from rawfinder.finders import JpegFinder, RawFinder
-from rawfinder.indexers import FileStorage
+from rawfinder.copier import AsyncFileCopier
+from rawfinder.finder import FileFinder
+from rawfinder.matcher import FileMatcher
 
 
-class App:
-    DEFAULT_DST_FOLDER = pathlib.Path("raw")
-    BATCH_SIZE = 10
+class AsyncRawFinderApp:
+    JPEG_EXTENSIONS: ClassVar[set[str]] = {".jpeg", ".jpg"}
+    RAW_EXTENSIONS: ClassVar[set[str]] = {
+        ".3fr",
+        ".ari",
+        ".arw",
+        ".srf",
+        ".sr2",
+        ".bay",
+        ".braw",
+        ".cri",
+        ".crw",
+        ".cr2",
+        ".cr3",
+        ".cap",
+        ".iiq",
+        ".eip",
+        ".dcs",
+        ".dcr",
+        ".drf",
+        ".k25",
+        ".kdc",
+        ".dng",
+        ".erf",
+        ".fff",
+        ".gpr",
+        ".mef",
+        ".mdc",
+        ".mos",
+        ".mrw",
+        ".nef",
+        ".nrw",
+        ".orf",
+        ".pef",
+        ".ptx",
+        ".pxn",
+        ".r3d",
+        ".raf",
+        ".raw",
+        ".rw2",
+        ".rwl",
+        ".rwz",
+        ".srw",
+        ".tco",
+        ".x3f",
+    }
 
-    def __init__(
-        self,
-        jpeg_images_path: pathlib.Path,
-        raw_images_path: pathlib.Path,
-        raw_images_dest_path: pathlib.Path,
-    ):
-        self.jpeg_finder = JpegFinder(jpeg_images_path)
-        self.raw_finder = RawFinder(raw_images_path)
-        self.raw_images_dest_path = raw_images_dest_path
+    def __init__(self, jpeg_dir: Path, raw_dir: Path, dest_dir: Path, logger: logging.Logger | None = None):
+        self.jpeg_dir = jpeg_dir
+        self.raw_dir = raw_dir
+        self.dest_dir = dest_dir
+        self.logger = logger or logging.getLogger(__name__)
 
-        self.raw_images_dest_path = (
-            raw_images_dest_path if raw_images_dest_path else jpeg_images_path / self.DEFAULT_DST_FOLDER
-        )
-        self.sem = asyncio.Semaphore(5)
+        self.jpeg_finder = FileFinder(jpeg_dir, self.JPEG_EXTENSIONS)
+        self.raw_finder = FileFinder(raw_dir, self.RAW_EXTENSIONS)
+        self.copier = AsyncFileCopier()
 
-    async def get_user_confirmation(self) -> None:
-        """
-        Prompts the user for confirmation to proceed.
-        """
-        message = (
-            f"JPEGs folder: '{self.jpeg_finder.path}'\n"
-            f"RAWs folder: '{self.raw_finder.path}'\n"
-            f"Destination folder: '{self.raw_images_dest_path}'\n"
-            "This script will find corresponding RAW files for these JPEG files and copy them to the destination folder.\n"
-            "Is it ok: [Y/n] "
-        )
+    async def run(self) -> None:
+        self.logger.info(f"Find JPEG files in '{self.jpeg_dir}'...")
+        jpeg_files = self.jpeg_finder.find_files()
+        self.logger.info(f"Found {len(jpeg_files)} JPEG files.")
 
-        if input(message).lower() not in ["y", ""]:
-            raise KeyboardInterrupt("Cancelled.")
+        self.logger.info(f"Find RAW files in '{self.raw_dir}'...")
+        raw_files = self.raw_finder.find_files()
+        self.logger.info(f"Found {len(raw_files)} RAW files.")
 
-    async def prepare_destination(self) -> None:
-        logger.info(f"Creating destination folder: {self.raw_images_dest_path}")
-        self.raw_images_dest_path.mkdir(exist_ok=True, parents=True)
-
-    async def copy_file(self, src: pathlib.Path, dst: pathlib.Path, jpeg_name: str) -> None:
-        dst = dst / src.name
-        async with self.sem, aiofiles.open(src, "rb") as src_file, aiofiles.open(dst, "wb") as dst_file:
-            while chunk := await src_file.read(16 * 1024 * 1024):
-                await dst_file.write(chunk)
-            logger.info(f"RAW file {src.name} found for {jpeg_name}, has been copied to {dst}...")
-
-    async def process_files(self) -> None:
-        logger.debug("Indexing RAW files")
-
-        storage = FileStorage()
-        await storage.make_index(self.raw_finder.find())
-
-        logger.debug("Processing JPEG files")
-
-        tasks = []
-
-        for jpeg_file in self.jpeg_finder.find():
-            raw_file = await storage.get(jpeg_file.stem.lower())
-            if raw_file:
-                tasks.append(self.copy_file(raw_file, self.raw_images_dest_path, jpeg_file.name))
+        matcher = FileMatcher(raw_files)
+        matches = []
+        for jpeg in jpeg_files:
+            raw = matcher.get_matching_raw(jpeg)
+            if raw:
+                matches.append((jpeg, raw))
             else:
-                logger.warning(f"No RAW file found for {jpeg_file.name}!")
+                self.logger.warning(f"RAW file not found for '{jpeg}'.")
 
-        logger.debug(f"Total files to process: {len(tasks)}")
+        total = len(matches)
+        self.logger.info(f"Found {total} matching JPEG-RAW files.")
 
-        for i in range(0, len(tasks), self.BATCH_SIZE):
-            await asyncio.gather(*tasks[i : i + self.BATCH_SIZE])
+        confirm = input("Do you want to copy these files? [Y/n] ")
+        if confirm.lower() not in ("y", ""):
+            self.logger.info("Copying files canceled.")
+            return
 
-    async def start(self) -> None:
-        """
-        Starts the application workflow.
-        """
-        try:
-            await self.get_user_confirmation()
-            await self.prepare_destination()
-            await self.process_files()
-            logger.info("Done.")
-        except KeyboardInterrupt:
-            pass
+        progress = Progress(
+            SpinnerColumn(),
+            TextColumn("{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeElapsedColumn(),
+        )
+
+        with progress:
+            task_id = progress.add_task(f"Copying files from {self.raw_dir} to {self.dest_dir}", total=total)
+
+            async def copy_and_update(raw_file_path: Path) -> None:
+                await self.copier.copy(raw_file_path, self.dest_dir)
+                progress.advance(task_id)
+
+            await asyncio.gather(*(copy_and_update(raw_file_path) for _, raw_file_path in matches))
+
+        self.logger.info(f"Finished copying {total} files to '{self.dest_dir}'.")
