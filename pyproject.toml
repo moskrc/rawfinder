@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rawfinder"
-version = "0.3.2"
+version = "0.3.3"
 description = "CLI tool to organize RAW photos by matching JPEG counterparts"
 authors = ["Vitalii Shishorin <moskrc@gmail.com>"]
 repository = "https://github.com/moskrc/rawfinder"
