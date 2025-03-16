@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Optional
 
 from rawfinder.copier import FileCopier
 from rawfinder.exceptions import ChecksumError, DirectoryValidationError, OverwriteDisabledError, UserCancelledError
@@ -19,9 +20,13 @@ class RawFinderApp:
         copier: FileCopier,
         progress_reporter: ProgressReporter,
         dry_run: bool = False,
-        photo_extensions=(),
-        source_extensions=(),
-    ):
+        photo_extensions: Optional[list[str]] = None,
+        source_extensions: Optional[list[str]] = None,
+    ) -> None:
+        if source_extensions is None:
+            source_extensions = []
+        if photo_extensions is None:
+            photo_extensions = []
         self.photos_dir = photos_dir
         self.sources_dir = sources_dir
         self.dest_dir = dest_dir
@@ -35,7 +40,7 @@ class RawFinderApp:
     def _validate_directories(self) -> None:
         for dir_path in [self.photos_dir, self.sources_dir]:
             if not dir_path.is_dir():
-                raise DirectoryValidationError(dir_path)
+                raise DirectoryValidationError(str(dir_path))
 
     def _find_photo_files(self) -> list[Path]:
         finder = FileFinder(self.photos_dir, set(self.photo_extensions))

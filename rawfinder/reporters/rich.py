@@ -1,8 +1,10 @@
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn, TimeElapsedColumn
 
+from rawfinder.reporters import ProgressReporter
 
-class RichProgressReporter:
-    def __init__(self):
+
+class RichProgressReporter(ProgressReporter):
+    def __init__(self) -> None:
         self._progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),

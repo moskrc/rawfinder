@@ -1,4 +1,5 @@
 import logging
+from collections.abc import KeysView
 from pathlib import Path
 
 import click
@@ -21,7 +22,7 @@ from rawfinder.reporters.factories import ReporterFactory
 logger = logging.getLogger(__name__)
 
 
-def str_to_bool(value):
+def str_to_bool(value) -> bool:
     if isinstance(value, bool):
         return value
     value = value.lower()
@@ -34,7 +35,7 @@ def str_to_bool(value):
 
 
 class NaturalOrderGroup(click.Group):
-    def list_commands(self, ctx: click.Context) -> list[str]:
+    def list_commands(self, ctx: click.Context) -> KeysView[str]:
         return self.commands.keys()
 
 
@@ -119,7 +120,7 @@ def process(
     reporter: str,
     photos_extensions: tuple[str, ...],
     sources_extensions: tuple[str, ...],
-):
+) -> None:
     """Organize RAW photos by matching them with JPEG counterparts.
 
     PHOTOS_DIR - directory with photos (JPEG files)
@@ -182,7 +183,7 @@ def process(
 
 
 @cli.group(cls=NaturalOrderGroup)
-def config():
+def config() -> None:
     """Manage application configuration"""
     pass
 
@@ -190,7 +191,7 @@ def config():
 @config.command()
 @click.option("--force", is_flag=True, help="Overwrite existing config")
 @click.pass_context
-def init(ctx: click.Context, force: bool):
+def init(ctx: click.Context, force: bool) -> None:
     """Initialize configuration file"""
     cfg_path = ConfigManager.get_user_config_path()
 
@@ -212,7 +213,7 @@ def init(ctx: click.Context, force: bool):
 
 @config.command()
 @click.pass_context
-def path(ctx: click.Context):
+def path(ctx: click.Context) -> None:
     """Show config file location"""
     cfg_path = ConfigManager.get_user_config_path()
     logger.info(f"User config: {cfg_path}")
@@ -222,7 +223,7 @@ def path(ctx: click.Context):
 
 @config.command()
 @click.pass_context
-def edit(ctx: click.Context):
+def edit(ctx: click.Context) -> None:
     """Edit config file in default editor"""
     cfg_path = ConfigManager.get_user_config_path()
     if not cfg_path.exists():
@@ -241,7 +242,7 @@ def edit(ctx: click.Context):
 
 @config.command()
 @click.pass_context
-def delete(ctx: click.Context):
+def delete(ctx: click.Context) -> None:
     """Delete config file"""
     cfg_path = ConfigManager.get_user_config_path()
     if cfg_path.exists():
@@ -253,7 +254,7 @@ def delete(ctx: click.Context):
 
 @config.command()
 @click.pass_context
-def validate(ctx: click.Context):
+def validate(ctx: click.Context) -> None:
     """Validate current configuration"""
     try:
         cfg = ConfigLoader().load()
