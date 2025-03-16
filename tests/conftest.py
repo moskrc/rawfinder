@@ -1,26 +1,37 @@
-from pathlib import Path
-
 import pytest
 
-from rawfinder.copier import AsyncFileCopier
+
+@pytest.fixture
+def sample_files(tmp_path):
+    files = {
+        "photo1": tmp_path / "image1.jpg",
+        "photo2": tmp_path / "image2.jpg",
+        "source1": tmp_path / "image1.raw",
+        "source2": tmp_path / "image2.raw",
+        "text": tmp_path / "document.txt",
+    }
+    for file in files.values():
+        file.touch()
+
+    return files
 
 
 @pytest.fixture
-def copier() -> AsyncFileCopier:
-    return AsyncFileCopier()
-
-
-@pytest.fixture
-def sample_dir(tmp_path: Path) -> Path:
-    base = tmp_path / "sample"
-    base.mkdir()
-    (base / "image1.JPG").write_text("image data")
-    (base / "image2.jpeg").write_text("image data")
-    (base / "image.cr2").write_text("image CR2")
-    (base / "document.pdf").write_text("document data")
-    (base / "script.py").write_text("print('Hello')")
-    sub = base / "subfolder"
-    sub.mkdir()
-    (sub / "image3.JpEg").write_text("image data")
-    (sub / "notes.txt").write_text("notes")
-    return base
+def config_file(tmp_path):
+    config_content = """
+    verify_checksum_chunk_size: 8192
+    reporter: plain
+    dry_run: false
+    verify_checksum: true
+    overwrite: false
+    extensions:
+      photos:
+        - .jpg
+        - .jpeg
+      sources:
+        - .raw
+        - .cr2
+    """
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(config_content)
+    return config_path

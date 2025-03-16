@@ -1,45 +1,54 @@
-from pathlib import Path
-
 import pytest
 
-from rawfinder.copier import AsyncFileCopier
+from rawfinder.copier import FileCopier
+from rawfinder.exceptions import OverwriteDisabledError
+from rawfinder.integrity import FileIntegrityChecker
 
 
-class TestAsyncFileCopier:
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "filename,content",
-        [
-            ("sample.txt", b"Test content for AsyncFileCopier."),
-            ("empty.txt", b""),
-        ],
-    )
-    async def test_copy_files(self, tmp_path: Path, copier: AsyncFileCopier, filename: str, content: bytes):
-        src_dir = tmp_path / "src"
-        src_dir.mkdir()
-        src_file = src_dir / filename
-        src_file.write_bytes(content)  # type: ignore[arg-type]
-
+class TestFileCopier:
+    def test_copy_file(self, tmp_path):
+        src = tmp_path / "source.txt"
         dest_dir = tmp_path / "dest"
-        await copier.copy(src_file, dest_dir)
+        src.write_text("Test content")
+        copier = FileCopier()
+        assert copier.copy(src, dest_dir) is True
+        assert (dest_dir / "source.txt").read_text() == "Test content"
 
-        dest_file = dest_dir / filename
-        assert dest_file.exists(), "Destination file should exist."
-        assert dest_file.read_bytes() == content, "Copied file content should match the source file content."
+    def test_copy_overwrite(self, tmp_path):
+        src = tmp_path / "source.txt"
+        dest_dir = tmp_path / "dest"
+        dest_file = dest_dir / "source.txt"
+        src.write_text("New content")
+        dest_file.parent.mkdir()
+        dest_file.write_text("Old content")
+        copier = FileCopier(overwrite=True)
+        assert copier.copy(src, dest_dir) is True
+        assert dest_file.read_text() == "New content"
 
-    @pytest.mark.asyncio
-    async def test_copy_file_multiple_chunks(self, mocker, tmp_path: Path, copier: AsyncFileCopier) -> None:
-        mocker.patch.object(AsyncFileCopier, "CHUNK_SIZE", 3)
+    def test_copy_no_overwrite(self, tmp_path):
+        src = tmp_path / "source.txt"
+        dest_dir = tmp_path / "dest"
+        dest_file = dest_dir / "source.txt"
+        src.write_text("New content")
+        dest_file.parent.mkdir()
+        dest_file.write_text("Old content")
+        copier = FileCopier(overwrite=False)
+        with pytest.raises(OverwriteDisabledError):
+            copier.copy(src, dest_dir)
 
-        src_dir = tmp_path / "src_multi"
-        src_dir.mkdir()
-        src_file = src_dir / "multi.txt"
-        content = b"0123456789ABCDEF"
-        src_file.write_bytes(content)  # type: ignore[arg-type]
+    def test_dry_run(self, tmp_path):
+        src = tmp_path / "source.txt"
+        dest_dir = tmp_path / "dest"
+        src.write_text("Test content")
+        copier = FileCopier(dry_run=True)
+        assert copier.copy(src, dest_dir) is True
+        assert not (dest_dir / "source.txt").exists()
 
-        dest_dir = tmp_path / "dest_multi"
-        await copier.copy(src_file, dest_dir)
-
-        dest_file = dest_dir / src_file.name
-        assert dest_file.exists(), "Destination file should exist."
-        assert dest_file.read_bytes() == content, "Copied file content should match the source across multiple chunks."
+    def test_verify_copy(self, tmp_path):
+        src = tmp_path / "source.txt"
+        dest_dir = tmp_path / "dest"
+        src.write_text("Test content")
+        verifier = FileIntegrityChecker()
+        copier = FileCopier(verifier=verifier)
+        assert copier.copy(src, dest_dir) is True
+        assert (dest_dir / "source.txt").read_text() == "Test content"

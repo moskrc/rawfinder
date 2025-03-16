@@ -1,29 +1,35 @@
-from pathlib import Path
+import pytest
 
+from rawfinder.exceptions import FinderDirectoryDoesNotExistError, FinderNoExtensionError
 from rawfinder.finder import FileFinder
 
 
 class TestFileFinder:
-    def test_find_files_returns_correct_files(self, sample_dir: Path) -> None:
-        extensions = {".jpg", ".jpeg", ".cr2"}
-        finder = FileFinder(sample_dir, extensions)
-        found_files = finder.find_files()
-        expected = {
-            sample_dir / "image1.JPG",
-            sample_dir / "image2.jpeg",
-            sample_dir / "image.cr2",
-            sample_dir / "subfolder" / "image3.JpEg",
-        }
-        assert set(found_files) == expected
+    def test_init_non_existent_directory(self, tmp_path):
+        non_existent = tmp_path / "non_existent"
+        with pytest.raises(FinderDirectoryDoesNotExistError):
+            FileFinder(non_existent, {".jpg"})
 
-    def test_find_files_no_matches(self, tmp_path: Path) -> None:
-        empty_dir = tmp_path / "empty"
-        empty_dir.mkdir()
-        finder = FileFinder(empty_dir, {".txt"})
-        found_files = finder.find_files()
-        assert found_files == []
+    def test_init_empty_extensions(self, tmp_path):
+        with pytest.raises(FinderNoExtensionError):
+            FileFinder(tmp_path, set())
 
-    def test_find_files_with_nonexistent_extension(self, sample_dir: Path) -> None:
-        finder = FileFinder(sample_dir, {".png"})
-        found_files = finder.find_files()
-        assert found_files == []
+    def test_find_files(self, sample_files):
+        finder = FileFinder(sample_files["photo1"].parent, {".jpg", ".raw"})
+        files = finder.find_files()
+        assert len(files) == 4  # image1.jpg, image2.jpg, image1.raw, image2.raw
+        assert {f.name for f in files} == {"image1.jpg", "image2.jpg", "image1.raw", "image2.raw"}
+
+    def test_find_files_no_matches(self, tmp_path):
+        (tmp_path / "document.txt").touch()
+        finder = FileFinder(tmp_path, {".jpg", ".raw"})
+        files = finder.find_files()
+        assert len(files) == 0
+
+    def test_find_files_case_insensitivity(self, tmp_path):
+        (tmp_path / "image1.JPG").touch()
+        (tmp_path / "image2.RAW").touch()
+        finder = FileFinder(tmp_path, {".jpg", ".raw"})
+        files = finder.find_files()
+        assert len(files) == 2
+        assert {f.name for f in files} == {"image1.JPG", "image2.RAW"}

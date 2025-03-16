@@ -1,33 +1,37 @@
 [tool.poetry]
 name = "rawfinder"
-version = "0.3.1"
-description = "This script finds corresponded RAW files for JPEG images."
+version = "0.3.2"
+description = "CLI tool to organize RAW photos by matching JPEG counterparts"
 authors = ["Vitalii Shishorin <moskrc@gmail.com>"]
 repository = "https://github.com/moskrc/rawfinder"
 documentation = "https://moskrc.github.io/rawfinder/"
 readme = "README.md"
-keywords = ["raw", "finder", "raw_finder", "jpeg_raw", "camera"]
+keywords = ["photography", "raw", "organizer", "cli", "fuji", "canon", "sony", "nikon", "ricoh", "pentax", "olympus", ]
 packages = [
-  {include = "rawfinder"}
+    { include = "rawfinder" },
+]
+include = [
+    "LICENSE",
+    "CHANGELOG.md"
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-aiofiles = "^24.1.0"
 rich = "^13.9.4"
+pydantic = "^2.10.6"
+click = "^8.1.8"
+appdirs = "^1.4.4"
+pyyaml = "^6.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
 pytest-cov = "^4.0.0"
-deptry = "^0.20.0"
-mypy = "^1.11.2"
-pre-commit = "^3.4.0"
-tox = "^4.20.0"
-ruff = "^0.6.6"
-pytest-asyncio = "^0.24.0"
-types-aiofiles = "^24.1.0.20240626"
-griffe = "0.49.0"
 pytest-mock = "^3.14.0"
+mypy = "^1.11.2"
+ruff = "^0.4.4"
+pre-commit = "^3.7.1"
+types-pyyaml = "^6.0.12.20240330"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
@@ -49,7 +53,9 @@ warn_unused_ignores = "True"
 show_error_codes = "True"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = [
+    "tests",
+]
 
 [tool.ruff]
 target-version = "py39"
@@ -90,8 +96,6 @@ select = [
     "TRY",
 ]
 ignore = [
-    # LineTooLong
-    "E501",
     # DoNotAssignLambda
     "E731",
 ]
@@ -111,4 +115,4 @@ source = ["rawfinder"]
 "tests/*" = ["S101"]
 
 [tool.poetry.scripts]
-rawfinder = "rawfinder.main:main"
+rawfinder = "rawfinder.cli:cli"

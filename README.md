@@ -13,6 +13,14 @@ $ pipx install rawfinder
 ## How to use
 
 ```bash
+
+
+poetry run rawfinder --log-file=./xxx.txt  process ../RAW_TEST/jpeg ../RAW_TEST/_raw_ ../RAW_TEST/raw11  --overwrite
+
+
+
+
+
 $ rawfinder -h
 
 usage: rawfinder [-h] jpeg_dir raw_dir dest_dir
