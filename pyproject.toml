@@ -43,6 +43,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
+disable_error_code = ["import-untyped"]
 files = ["rawfinder"]
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"

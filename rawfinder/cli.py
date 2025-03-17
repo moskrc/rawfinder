@@ -1,10 +1,8 @@
 import logging
-from collections.abc import KeysView
 from pathlib import Path
 
 import click
 import yaml
-from yaml._yaml import RepresenterError
 
 from rawfinder.app import RawFinderApp
 from rawfinder.config import AppConfig, ConfigLoader, ConfigManager, ReporterEnum
@@ -17,12 +15,13 @@ from rawfinder.exceptions import (
 )
 from rawfinder.integrity import FileIntegrityChecker
 from rawfinder.logging import setup_logging
+from rawfinder.reporters import ProgressReporter
 from rawfinder.reporters.factories import ReporterFactory
 
 logger = logging.getLogger(__name__)
 
 
-def str_to_bool(value) -> bool:
+def str_to_bool(value: str) -> bool:
     if isinstance(value, bool):
         return value
     value = value.lower()
@@ -35,8 +34,8 @@ def str_to_bool(value) -> bool:
 
 
 class NaturalOrderGroup(click.Group):
-    def list_commands(self, ctx: click.Context) -> KeysView[str]:
-        return self.commands.keys()
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        return list(self.commands.keys())
 
 
 @click.group(cls=NaturalOrderGroup)
@@ -52,7 +51,7 @@ class NaturalOrderGroup(click.Group):
     "--log-file", type=click.Path(path_type=Path), default=None, help="Path to file where logs will be written"
 )
 @click.pass_context
-def cli(ctx: click.Context, verbose: bool, config: Path, handler_type: str, log_file: Path):
+def cli(ctx: click.Context, verbose: bool, config: Path, handler_type: str, log_file: Path) -> None:
     """RAW Photo Organizer CLI Tool"""
     setup_logging(verbose=verbose, handler_type=handler_type, log_file=log_file)
     ctx.ensure_object(dict)
@@ -75,7 +74,7 @@ def cli(ctx: click.Context, verbose: bool, config: Path, handler_type: str, log_
 @click.option("--overwrite", is_flag=True, default=None)
 @click.option("--dry-run", is_flag=True, default=None, help="Simulate operations without actual changes")
 @click.option(
-    "--reporter",
+    "--reporter-type",
     default=None,
     type=click.Choice([item.value for item in ReporterEnum]),
     help="Progress reporting style",
@@ -117,7 +116,7 @@ def process(
     verify_checksum_chunk_size: int,
     overwrite: bool,
     dry_run: bool,
-    reporter: str,
+    reporter_type: str,
     photos_extensions: tuple[str, ...],
     sources_extensions: tuple[str, ...],
 ) -> None:
@@ -137,7 +136,7 @@ def process(
 
     config.overwrite = overwrite or config.overwrite
     config.dry_run = dry_run or config.dry_run
-    config.reporter = reporter or config.reporter
+    config.reporter = ReporterEnum(reporter_type) if reporter_type else config.reporter
     config.verify_checksum = verify_checksum if verify_checksum is not None else config.verify_checksum
     config.verify_checksum_chunk_size = verify_checksum_chunk_size or config.verify_checksum_chunk_size
 
@@ -156,7 +155,7 @@ def process(
 
         copier = FileCopier(overwrite=config.overwrite, dry_run=config.dry_run, verifier=check_sum_verifier)
 
-        reporter = ReporterFactory.create(config.reporter)
+        reporter: ProgressReporter = ReporterFactory.create(config.reporter.value)
 
         app = RawFinderApp(
             photos_dir=photos_dir,
@@ -203,7 +202,7 @@ def init(ctx: click.Context, force: bool) -> None:
         cfg_path.parent.mkdir(parents=True, exist_ok=True)
         with cfg_path.open("w") as f:
             yaml.safe_dump(AppConfig().model_dump(mode="json"), f, sort_keys=False)
-    except RepresenterError as e:
+    except Exception as e:
         cfg_path.unlink()
         cfg_path.parent.rmdir()
         raise WriteConfigFileError from e
