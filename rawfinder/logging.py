@@ -11,7 +11,7 @@ except ImportError:
     rich_handler = None
 
 
-def setup_logging(verbose: bool = False, handler_type: str | None = None, log_file: Path | None = None) -> None:
+def setup_logging(verbose: bool = False, handler_type: Optional[str] = None, log_file: Optional[Path] = None) -> None:
     level = logging.DEBUG if verbose else logging.INFO
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
     date_format = "%H:%M:%S"
