@@ -1,5 +1,6 @@
 import errno
 from pathlib import Path
+from typing import Optional
 
 from click import ClickException
 
@@ -35,7 +36,7 @@ class DirectoryValidationError(Exception):
 class UserCancelledError(Exception):
     """Raised when the user cancels the script execution."""
 
-    def __init__(self, message: str | None = None) -> None:
+    def __init__(self, message: Optional[str] = None) -> None:
         self.message = message or "User cancelled the script"
         super().__init__(self.message)
 
